@@ -9,7 +9,7 @@ def edge_detection(frame, width, height):
     frame = cv.resize(frame, (width, height))
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     blurred = cv.medianBlur(gray,11)
-    edges = cv.Canny(blurred, 40, 100)
+    edges = cv.Canny(blurred, 300, 200)
     return edges
 
 def hue_detection(frame, width, height):

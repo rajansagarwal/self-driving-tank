@@ -45,7 +45,7 @@ def loss(x, y):
             big += val
     return (big - loss) / big
 
-img = cv.imread(os.getcwd() + "\\Sidewalks\\" + "P10.jpg")
+img = cv.imread(os.getcwd() + "/Sidewalks/" + "P10.jpg")
 feat1 = flatten(edge_detection(img, IMG_WIDTH, IMG_HEIGHT))
 feat2 = flatten(hue_detection(img, IMG_WIDTH, IMG_HEIGHT))
 if sum(feat1) < sum(feat2):
