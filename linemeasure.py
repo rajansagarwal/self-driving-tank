@@ -1,25 +1,14 @@
 # import dependencies
-import os
-import sys
-
 import numpy as np
 import matplotlib.pyplot as plt
-
 import cv2
 import time
-
-
-from base64 import b64decode, b64encode
-
 import math
-
 # define a video capture object edit the number to find the webcam
 vid = cv2.VideoCapture(2) 
 # whiteboard = cv2.imread('./Sidewalks/whiteboxcomputer.png', cv2.IMREAD_UNCHANGED)
-white_image = np.ones((1080, 1920, 3), np.uint8) * 256 
   
 while(True): 
-    whiteboard = np.ones((1080, 1920, 3), np.uint8) * 256 
     # Capture the video frame 
     # by frame 
     ret, image = vid.read()
@@ -27,6 +16,9 @@ while(True):
     x = image.shape[1]
     halfx = int(x/2)
     yless = y - 1
+    
+    whiteboard = np.ones((y, x, 3), np.uint8) * 256 
+
 
     # Read the Image
     
@@ -81,8 +73,6 @@ while(True):
     max_line_gap = 30  # maximum gap in pixels between connectable line segments
     line_image = np.copy(img_Otsubin) * 0  # creating a blank to draw lines on
     '''
-
-    line_image = np.copy(img_Otsubin) * 0  # creating a blank to draw lines on
 
     # Run Hough on edge detected image. Output lines are an array containing endpoints of detected line segments
     lines = cv2.HoughLinesP(edges, 1, np.pi/100, 15, np.array([]),
