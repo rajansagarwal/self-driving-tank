@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 import requests
 import time
+import csv
+import pandas as pd
 
 class PIDController:
     def __init__(self, Kp, Ki, Kd):
@@ -18,28 +20,21 @@ class PIDController:
         self.prev_error = error
         return output
 
-num_samples = 1000
+num_samples = 100
 
 forward_distances = np.random.uniform(1, 10, num_samples)
 right_distances = np.random.uniform(1, 5, num_samples)
 left_distances = np.random.uniform(1, 5, num_samples)
 
-instructions = []
-for i in range(num_samples):
-    if forward_distances[i] >= right_distances[i] and forward_distances[i] >= left_distances[i]:
-        instructions.append([1, 0, 0, 0, 0])  
-    elif right_distances[i] >= left_distances[i]:
-        instructions.append([0, 0, 1, 15, 30])
-    else:
-        instructions.append([0, 1, 0, 10, 20])
+data = pd.read_csv('edge_distances.csv') 
+distances = data[['Distance Left', 'Distance Forwards', 'Distance Right']].values
+move_choice = data['Move Choice'].values
 
-forward_distances = np.array(forward_distances).reshape(-1, 1)
-right_distances = np.array(right_distances).reshape(-1, 1)
-left_distances = np.array(left_distances).reshape(-1, 1)
-instructions = np.array(instructions)
+# move choice to one-hot encoding
+num_classes = 3
+move_choice_one_hot = tf.keras.utils.to_categorical(move_choice, num_classes)
 
-distances = np.concatenate((forward_distances, right_distances, left_distances), axis=1)
-
+# def neural network model
 model = tf.keras.Sequential([
     tf.keras.layers.Dense(10, activation='relu', input_shape=(3,)),
     tf.keras.layers.Dense(10, activation='relu'),
@@ -48,7 +43,8 @@ model = tf.keras.Sequential([
 
 model.compile(optimizer='adam', loss='mean_squared_error')
 
-model.fit(distances, instructions, epochs=20, batch_size=32)
+# TRAINININGG!!!
+model.fit(distances, move_choice_one_hot[:, :3], epochs=20, batch_size=32)
 
 def send_post_request(action, scaled, distance):
     url = "https://8f00-72-139-206-147.ngrok-free.app/"
@@ -76,13 +72,10 @@ for i, pred in enumerate(predictions):
     move_forward, rotate_left, rotate_right, angle, distance = pred
     action = np.argmax([move_forward, rotate_left, rotate_right])
     scaled_delay = int(distance)
-    # Calculate error as the difference between the predicted and actual distance
     error = distance - scaled_delay
 
-    # Use PID controller to adjust the delay based on the error
-    pid_output = pid_controller.calculate(error, dt=1)  # dt is the time step, set to 1 for simplicity
+    pid_output = pid_controller.calculate(error, dt=1) 
 
-    # Adjust the delay based on the PID output
     scaled_delay += pid_output
 
     if action == 0:
