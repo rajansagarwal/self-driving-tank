@@ -2,6 +2,7 @@ import sys
 import math
 import pygame
 import neat
+import csv
 
 pygame.init()
 pygame.display.set_caption("Training BOAT")
@@ -15,7 +16,7 @@ ROTATION = 10
 WHITE = (255, 255, 255, 255)
 MAP = pygame.image.load('tracks/track3.png').convert_alpha()
 pygame.display.set_caption("Training BOAT")
-FONT = pygame.font.SysFont("arial", 25)
+FONT = pygame.font.SysFont("arial", 15)
 CLOCK = pygame.time.Clock()
 GENERATION = 0
 
@@ -45,7 +46,7 @@ class Car:
         self.update_sensor_data()
         self.stopped = False
 
-    def show_car(self):
+    def display_car(self):
         rotated_car = pygame.transform.rotate(self.car, self.angle)
         rect = rotated_car.get_rect(center=self.car_center)
         SCREEN.blit(rotated_car, rect.topleft)
@@ -73,7 +74,7 @@ class Car:
         self.edge_points = edge_points
         self.edge_distances = edge_distances
 
-    def edges(self):
+    def display_edge_points(self):
         for point in self.edge_points:
             pygame.draw.line(SCREEN, (0, 255, 0), self.car_center, point)
             pygame.draw.circle(SCREEN, (0, 255, 0), point, 5)
@@ -100,6 +101,7 @@ def run(genomes, config):
     GENERATION += 1
     models = []
     cars = []
+    top_cars_info = []
 
     for _, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -122,7 +124,7 @@ def run(genomes, config):
         top_velocity = 0
         top_angle = 0
 
-        def motor_instructions(instructions):
+        def save_instructions_to_file(instructions):
             with open("move_instructions.txt", "w") as file:
                 file.write("Move Instructions with Angles:\n")
                 for i, move in enumerate(instructions):
@@ -138,16 +140,16 @@ def run(genomes, config):
                 elif choice == 1:
                     car.angle -= ROTATION
                 car.update_position()
-                car.show_car()
+                car.display_car()
                 car.crashed = car.crash_check()
                 car.update_sensor_data()
                 genomes[i][1].fitness += car.travelled_distance
-                car.edges()
+                car.display_edge_points()
 
-                if MAP.get_at(car.car_center) == (0, 255, 0):
-                    stopped = True
-                    print("Car reached RGB(0, 255, 0). Game Over.")
-                    motor_instructions(move_instructions)
+                # if MAP.get_at(car.car_center) == (0, 255, 0):
+                #     stopped = True
+                #     print("Car reached RGB(0, 255, 0). Game Over.")
+                #     save_instructions_to_file(move_instructions)
                     
                 if top_car is None or car.travelled_distance > top_car.travelled_distance:
                     top_car = car
@@ -157,8 +159,38 @@ def run(genomes, config):
                 if top_car is not None:
                     move_instructions.append((top_velocity, top_angle, car.edge_distances))
 
-            motor_instructions(move_instructions)
+                if len(top_cars_info) < 10:
+                    top_cars_info.append({
+                        'velocity': top_velocity,
+                        'angle': top_angle,
+                        'distances': car.edge_distances,
+                        'choice': choice
+                    })
 
+            save_instructions_to_file(move_instructions)
+
+        with open("edge_distances.csv", "a", newline='') as file:
+            writer = csv.writer(file)
+
+                # Write header if the file is empty
+            if file.tell() == 0:
+                writer.writerow(['Car', 'Distance Left', 'Distance Forwards', 'Distance Right', 'Move Choice', 'Velocity(px)', 'Angle(deg)'])
+
+            for i, car_info in enumerate(top_cars_info):
+                if (i + 1) % 40 == 0:
+                    top_cars_info = []
+                    break
+                writer.writerow([
+                    f"Car {i + 1}",
+                    car_info['distances'][0],
+                    car_info['distances'][1],
+                    car_info['distances'][2],
+                    car_info['choice'],
+                    car_info['velocity'],
+                    car_info['angle']
+                ])
+
+        
         info_text = f"Top Car - Velocity: {top_velocity}px, Angle: {top_angle}°"
         info_render = FONT.render(info_text, True, (0, 0, 0))
         SCREEN.blit(info_render, (0, 30))
