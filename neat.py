@@ -15,7 +15,6 @@ SPEED = 5
 ROTATION = 10
 WHITE = (255, 255, 255, 255)
 MAP = pygame.image.load('tracks/track3.png').convert_alpha()
-pygame.display.set_caption("Training BOAT")
 FONT = pygame.font.SysFont("arial", 15)
 CLOCK = pygame.time.Clock()
 GENERATION = 0
