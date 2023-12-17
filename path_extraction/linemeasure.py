@@ -4,7 +4,7 @@ import cv2
 import time
 import math
 
-vid = cv2.VideoCapture('IMG_1670.MOV') 
+vid = cv2.VideoCapture('IMG_1671.MOV') 
 
 while vid.isOpened(): 
     ret, image = vid.read()
@@ -13,8 +13,7 @@ while vid.isOpened():
     halfx = int(x/2)
     yless = y - 1
     result = []
-
-    
+ 
     whiteboard = np.ones((y, x, 3), np.uint8) * 256 
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
@@ -53,8 +52,6 @@ while vid.isOpened():
                 cv2.line(image,(x1,y1),(x2,y2),(255,0,0),2)
                 cv2.line(whiteboard,(x1,y1),(x2,y2),(255,0,0),2)
 
-
-
     # LEFT LINE
     y1 = y - 1
     x1 = halfx
@@ -71,7 +68,6 @@ while vid.isOpened():
     result.append(int(math.hypot(halfx - x1, yless - y1)))
     cv2.putText(image, text1, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-
     # CENTRE LINE
     y2 = yless
     x2 = halfx
@@ -87,7 +83,6 @@ while vid.isOpened():
     text2 = "Forward Distance:" + str(distance2)
     result.append(int(math.hypot(halfx - x2, yless - y2)))
     cv2.putText(image, text2, (halfx - 75, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
 
     # RIGHT LINE
     y3 = yless
