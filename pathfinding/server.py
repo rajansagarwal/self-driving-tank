@@ -22,19 +22,21 @@ class PIDController:
 
 num_samples = 100
 
+# Generating random distances
 forward_distances = np.random.uniform(1, 10, num_samples)
 right_distances = np.random.uniform(1, 5, num_samples)
 left_distances = np.random.uniform(1, 5, num_samples)
 
+# Read data from a CSV file
 data = pd.read_csv('edge_distances.csv') 
 distances = data[['Distance Left', 'Distance Forwards', 'Distance Right']].values
 move_choice = data['Move Choice'].values
 
-# move choice to one-hot encoding
+# Convert move choice to one-hot encoding
 num_classes = 3
 move_choice_one_hot = tf.keras.utils.to_categorical(move_choice, num_classes)
 
-# def neural network model
+# Define a neural network model
 model = tf.keras.Sequential([
     tf.keras.layers.Dense(10, activation='relu', input_shape=(3,)),
     tf.keras.layers.Dense(10, activation='relu'),
@@ -43,23 +45,20 @@ model = tf.keras.Sequential([
 
 model.compile(optimizer='adam', loss='mean_squared_error')
 
-# TRAINININGG!!!
+# Train the neural network model
 model.fit(distances, move_choice_one_hot[:, :3], epochs=20, batch_size=32)
 
+# Function to send a POST request
 def send_post_request(action, scaled, distance):
     url = "https://8f00-72-139-206-147.ngrok-free.app/"
-    if action == 0:
-        endpoint = "/forward"
-    elif action == 1:
-        endpoint = "/right"
-    else:
-        endpoint = "/left"
-
+    endpoints = ["/forward", "/right", "/left"]
+    endpoint = endpoints[action] if action < len(endpoints) else "/default"
     full_url = url + endpoint
     params = {'speed': '0.95'} 
     requests.post(full_url, params=params)
     time.sleep(scaled)
 
+# Some arbitrary distances for prediction
 distances = np.array([[1.6, 1.2, 4.8], [7.1, 5.5, 4.2]])
 predictions = model.predict(distances)
     
@@ -78,6 +77,7 @@ for i, pred in enumerate(predictions):
 
     scaled_delay += pid_output
 
+    # Adjust delays based on actions
     if action == 0:
         scaled_delay *= 2
     elif action == 1:

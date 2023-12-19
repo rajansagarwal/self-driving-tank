@@ -116,8 +116,5 @@ def rec_line(x, old_y, old_loss, counter):
     else:
         return [new_a, new_b, new_c]
 
-# print(rec_line(x, [0.5, -10, 25], loss(x, [0.5, -10, 25]), 0))
-# print(loss(x, [0, -5, 145]))
-# print(loss(x, [1.17, 1.9, -90]))
 print(get_line(x))
 # print(left_45_dis([1, -3.9, 115]))

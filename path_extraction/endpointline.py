@@ -5,21 +5,6 @@ import cv2
 import time
 import math
 
-# Use vid = cv2.VideoCapture(2) to set input device and put this function in a while loop
-# At the end of the while loop write the following code to allow breaks by pressing q
-'''
-if cv2.waitKey(1) == ord('q'): 
-        break
-
-'''
-
-# Outside of the while loop, write
-'''
-vid.release()
-cv2.destroyAllWindows()
-'''
-
-
 vid = cv2.VideoCapture(2)
 
 def measure (vid):
