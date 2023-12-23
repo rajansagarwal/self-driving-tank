@@ -14,15 +14,18 @@ CAR_CENTER = 80, 80
 SPEED = 5
 ROTATION = 10
 WHITE = (255, 255, 255, 255)
-MAP = pygame.image.load('tracks/track3.png').convert_alpha()
+MAP = pygame.image.load("tracks/track3.png").convert_alpha()
 FONT = pygame.font.SysFont("arial", 15)
 CLOCK = pygame.time.Clock()
 GENERATION = 0
 
+
 def translate_kinda_sorta(point, angle, distance):
     radians = math.radians(angle)
-    return int(point[0] + distance * math.cos(radians)),\
-        int(point[1] + distance * math.sin(radians))
+    return int(point[0] + distance * math.cos(radians)), int(
+        point[1] + distance * math.sin(radians)
+    )
+
 
 def start_here(track_surface):
     for x in range(track_surface.get_width()):
@@ -30,6 +33,7 @@ def start_here(track_surface):
             if track_surface.get_at((x, y)) == (255, 0, 0, 255):
                 return x + 50, y + 50
     return None
+
 
 class Car:
     def __init__(self):
@@ -79,20 +83,16 @@ class Car:
             pygame.draw.circle(SCREEN, (0, 255, 0), point, 5)
 
     def update_position(self):
-        self.car_center = translate_kinda_sorta(
-            self.car_center, 90 - self.angle, SPEED)
+        self.car_center = translate_kinda_sorta(self.car_center, 90 - self.angle, SPEED)
         self.travelled_distance += SPEED
-        dist = math.sqrt(CAR_SIZE[0]**2 + CAR_SIZE[1]**2)/2
+        dist = math.sqrt(CAR_SIZE[0] ** 2 + CAR_SIZE[1] ** 2) / 2
         corners = []
-        corners.append(translate_kinda_sorta(
-            self.car_center, 60 - self.angle, dist))
-        corners.append(translate_kinda_sorta(
-            self.car_center, 120 - self.angle, dist))
-        corners.append(translate_kinda_sorta(
-            self.car_center, 240 - self.angle, dist))
-        corners.append(translate_kinda_sorta(
-            self.car_center, 300 - self.angle, dist))
+        corners.append(translate_kinda_sorta(self.car_center, 60 - self.angle, dist))
+        corners.append(translate_kinda_sorta(self.car_center, 120 - self.angle, dist))
+        corners.append(translate_kinda_sorta(self.car_center, 240 - self.angle, dist))
+        corners.append(translate_kinda_sorta(self.car_center, 300 - self.angle, dist))
         self.corners = corners
+
 
 def run(genomes, config):
     global GENERATION
@@ -149,63 +149,86 @@ def run(genomes, config):
                 #     stopped = True
                 #     print("Car reached RGB(0, 255, 0). Game Over.")
                 #     save_instructions_to_file(move_instructions)
-                    
-                if top_car is None or car.travelled_distance > top_car.travelled_distance:
+
+                if (
+                    top_car is None
+                    or car.travelled_distance > top_car.travelled_distance
+                ):
                     top_car = car
                     top_velocity = SPEED
                     top_angle = car.angle
-                    
+
                 if top_car is not None:
-                    move_instructions.append((top_velocity, top_angle, car.edge_distances))
+                    move_instructions.append(
+                        (top_velocity, top_angle, car.edge_distances)
+                    )
 
                 if len(top_cars_info) < 10:
-                    top_cars_info.append({
-                        'velocity': top_velocity,
-                        'angle': top_angle,
-                        'distances': car.edge_distances,
-                        'choice': choice
-                    })
+                    top_cars_info.append(
+                        {
+                            "velocity": top_velocity,
+                            "angle": top_angle,
+                            "distances": car.edge_distances,
+                            "choice": choice,
+                        }
+                    )
 
             save_instructions_to_file(move_instructions)
 
-        with open("edge_distances.csv", "a", newline='') as file:
+        with open("edge_distances.csv", "a", newline="") as file:
             writer = csv.writer(file)
 
-                # Write header if the file is empty
+            # Write header if the file is empty
             if file.tell() == 0:
-                writer.writerow(['Car', 'Distance Left', 'Distance Forwards', 'Distance Right', 'Move Choice', 'Velocity(px)', 'Angle(deg)'])
+                writer.writerow(
+                    [
+                        "Car",
+                        "Distance Left",
+                        "Distance Forwards",
+                        "Distance Right",
+                        "Move Choice",
+                        "Velocity(px)",
+                        "Angle(deg)",
+                    ]
+                )
 
             for i, car_info in enumerate(top_cars_info):
                 if (i + 1) % 40 == 0:
                     top_cars_info = []
                     break
-                writer.writerow([
-                    f"Car {i + 1}",
-                    car_info['distances'][0],
-                    car_info['distances'][1],
-                    car_info['distances'][2],
-                    car_info['choice'],
-                    car_info['velocity'],
-                    car_info['angle']
-                ])
+                writer.writerow(
+                    [
+                        f"Car {i + 1}",
+                        car_info["distances"][0],
+                        car_info["distances"][1],
+                        car_info["distances"][2],
+                        car_info["choice"],
+                        car_info["velocity"],
+                        car_info["angle"],
+                    ]
+                )
 
-        
         info_text = f"Top Car - Velocity: {top_velocity}px, Angle: {top_angle}°"
         info_render = FONT.render(info_text, True, (0, 0, 0))
         SCREEN.blit(info_render, (0, 30))
 
         if running_cars == 0:
             return
-        
+
         msg = "Generation: {}, Running Cars: {}".format(GENERATION, running_cars)
         text = FONT.render(msg, True, (0, 0, 0))
         SCREEN.blit(text, (0, 0))
         pygame.display.update()
         CLOCK.tick(10)
 
-neat_config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
-                                 "config.txt")
+
+neat_config = neat.config.Config(
+    neat.DefaultGenome,
+    neat.DefaultReproduction,
+    neat.DefaultSpeciesSet,
+    neat.DefaultStagnation,
+    "config.txt",
+)
 population = neat.Population(neat_config)
 population.add_reporter(neat.StdOutReporter(True))
 stats = neat.StatisticsReporter()

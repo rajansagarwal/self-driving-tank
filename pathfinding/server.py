@@ -5,6 +5,7 @@ import time
 import csv
 import pandas as pd
 
+
 class PIDController:
     def __init__(self, Kp, Ki, Kd):
         self.Kp = Kp
@@ -20,45 +21,51 @@ class PIDController:
         self.prev_error = error
         return output
 
+
 def tune_pid(controller, target, iterations=100, dt=1):
     for _ in range(iterations):
         error = target - controller.prev_error
         controller.calculate(error, dt)
+
 
 num_samples = 100
 forward_distances = np.random.uniform(1, 10, num_samples)
 right_distances = np.random.uniform(1, 5, num_samples)
 left_distances = np.random.uniform(1, 5, num_samples)
 
-data = pd.read_csv('edge_distances.csv') 
-distances = data[['Distance Left', 'Distance Forwards', 'Distance Right']].values
-move_choice = data['Move Choice'].values
+data = pd.read_csv("edge_distances.csv")
+distances = data[["Distance Left", "Distance Forwards", "Distance Right"]].values
+move_choice = data["Move Choice"].values
 
 num_classes = 3
 move_choice_one_hot = tf.keras.utils.to_categorical(move_choice, num_classes)
 
-model = tf.keras.Sequential([
-    tf.keras.layers.Dense(10, activation='relu', input_shape=(3,)),
-    tf.keras.layers.Dense(10, activation='relu'),
-    tf.keras.layers.Dense(5)
-])
+model = tf.keras.Sequential(
+    [
+        tf.keras.layers.Dense(10, activation="relu", input_shape=(3,)),
+        tf.keras.layers.Dense(10, activation="relu"),
+        tf.keras.layers.Dense(5),
+    ]
+)
 
-model.compile(optimizer='adam', loss='mean_squared_error')
+model.compile(optimizer="adam", loss="mean_squared_error")
 
 model.fit(distances, move_choice_one_hot[:, :3], epochs=20, batch_size=32)
+
 
 def send_post_request(action, scaled, distance):
     url = "https://8f00-72-139-206-147.ngrok-free.app/"
     endpoints = ["/forward", "/right", "/left"]
     endpoint = endpoints[action] if action < len(endpoints) else "/default"
     full_url = url + endpoint
-    params = {'speed': '0.95'} 
+    params = {"speed": "0.95"}
     requests.post(full_url, params=params)
     time.sleep(scaled)
 
+
 distances = np.array([[1.6, 1.2, 4.8], [7.1, 5.5, 4.2]])
 predictions = model.predict(distances)
-    
+
 Kp = 0.1
 Ki = 0.01
 Kd = 0.01
