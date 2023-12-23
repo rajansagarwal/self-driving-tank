@@ -13,11 +13,12 @@ COUNTER_MAX = 100
 
 
 class eqn:
+
     def __init__(self, y):
         self.y = y
 
     def eval(self, x):
-        return (self.y[0] ** x) + (self.y[1] * x) + self.y[2]
+        return self.y[0] ** x + self.y[1] * x + self.y[2]
 
 
 def flatten(x):
@@ -31,11 +32,8 @@ def flatten(x):
 def loss(x, y):
     SD = 1
     HEIGHT = 5
-    normal = (
-        lambda SD, HEIGHT, M, x: (1 / (SD * math.sqrt(2 * math.pi)))
-        * ((math.e ** ((-1 / 2) * (((x - M) / SD) ** 2))))
-        * HEIGHT
-    )
+    normal = lambda SD, HEIGHT, M, x: 1 / (SD * math.sqrt(2 * math.pi)) \
+        * math.e ** (-1 / 2 * ((x - M) / SD) ** 2) * HEIGHT
 
     line = eqn(y)
 
@@ -45,13 +43,13 @@ def loss(x, y):
         y_line_pos = line.eval(x_pos)
         for y_pos in range(0, IMG_HEIGHT):
             val = normal(SD, HEIGHT, y_line_pos, y_pos)
-            pos = int((IMG_WIDTH * y_pos) + x_pos)
+            pos = int(IMG_WIDTH * y_pos + x_pos)
             loss += x[pos] * val / 255
             big += val
     return (big - loss) / big
 
 
-img = cv.imread(os.getcwd() + "/Sidewalks/" + "P10.jpg")
+img = cv.imread(os.getcwd() + '/Sidewalks/' + 'P10.jpg')
 feat1 = flatten(edge_detection(img, IMG_WIDTH, IMG_HEIGHT))
 feat2 = flatten(hue_detection(img, IMG_WIDTH, IMG_HEIGHT))
 if sum(feat1) < sum(feat2):
@@ -65,7 +63,7 @@ def left_45_dis(y):
     x = IMG_WIDTH / 2
     while x > line.eval(x):
         x -= 1
-    return math.sqrt(2) * ((IMG_WIDTH / 2) - x)
+    return math.sqrt(2) * (IMG_WIDTH / 2 - x)
 
 
 def right_45_dis(y):
@@ -73,7 +71,7 @@ def right_45_dis(y):
     x = IMG_WIDTH / 2
     while x > line.eval(x):
         x += 1
-    return math.sqrt(2) * ((IMG_WIDTH / 2) - x)
+    return math.sqrt(2) * (IMG_WIDTH / 2 - x)
 
 
 def get_line(x):
@@ -85,13 +83,18 @@ def get_line(x):
             if val < low and val > 0:
                 low = val
                 best = [a / 10, b, c]
-                print(val, best)
+                print (val, best)
                 if val < 0.1:
                     return best
     return best
 
 
-def rec_line(x, old_y, old_loss, counter):
+def rec_line(
+    x,
+    old_y,
+    old_loss,
+    counter,
+    ):
     [a, b, c] = old_y
     a1 = a + A_TRY_DISTANCE
     ya1 = loss(x, [a1, b, c])
@@ -118,11 +121,12 @@ def rec_line(x, old_y, old_loss, counter):
 
     if counter < COUNTER_MAX:
         l = loss(x, [new_a, new_b, new_c])
-        print([new_a, new_b, new_c], l)
+        print ([new_a, new_b, new_c], l)
         return rec_line(x, [new_a, new_b, new_c], l, counter + 1)
     else:
         return [new_a, new_b, new_c]
 
 
 print(get_line(x))
+
 # print(left_45_dis([1, -3.9, 115]))

@@ -7,7 +7,13 @@ import pandas as pd
 
 
 class PIDController:
-    def __init__(self, Kp, Ki, Kd):
+
+    def __init__(
+        self,
+        Kp,
+        Ki,
+        Kd,
+        ):
         self.Kp = Kp
         self.Ki = Ki
         self.Kd = Kd
@@ -17,12 +23,18 @@ class PIDController:
     def calculate(self, error, dt):
         self.integral += error * dt
         derivative = (error - self.prev_error) / dt
-        output = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
+        output = self.Kp * error + self.Ki * self.integral + self.Kd \
+            * derivative
         self.prev_error = error
         return output
 
 
-def tune_pid(controller, target, iterations=100, dt=1):
+def tune_pid(
+    controller,
+    target,
+    iterations=100,
+    dt=1,
+    ):
     for _ in range(iterations):
         error = target - controller.prev_error
         controller.calculate(error, dt)
@@ -33,32 +45,33 @@ forward_distances = np.random.uniform(1, 10, num_samples)
 right_distances = np.random.uniform(1, 5, num_samples)
 left_distances = np.random.uniform(1, 5, num_samples)
 
-data = pd.read_csv("edge_distances.csv")
-distances = data[["Distance Left", "Distance Forwards", "Distance Right"]].values
-move_choice = data["Move Choice"].values
+data = pd.read_csv('edge_distances.csv')
+distances = data[['Distance Left', 'Distance Forwards', 'Distance Right'
+                 ]].values
+move_choice = data['Move Choice'].values
 
 num_classes = 3
-move_choice_one_hot = tf.keras.utils.to_categorical(move_choice, num_classes)
+move_choice_one_hot = tf.keras.utils.to_categorical(move_choice,
+        num_classes)
 
-model = tf.keras.Sequential(
-    [
-        tf.keras.layers.Dense(10, activation="relu", input_shape=(3,)),
-        tf.keras.layers.Dense(10, activation="relu"),
-        tf.keras.layers.Dense(5),
-    ]
-)
+model = tf.keras.Sequential([tf.keras.layers.Dense(10, activation='relu'
+                            , input_shape=(3, )),
+                            tf.keras.layers.Dense(10, activation='relu'
+                            ), tf.keras.layers.Dense(5)])
 
-model.compile(optimizer="adam", loss="mean_squared_error")
+model.compile(optimizer='adam', loss='mean_squared_error')
 
-model.fit(distances, move_choice_one_hot[:, :3], epochs=20, batch_size=32)
+model.fit(distances, move_choice_one_hot[:, :3], epochs=20,
+          batch_size=32)
 
 
 def send_post_request(action, scaled, distance):
-    url = "https://8f00-72-139-206-147.ngrok-free.app/"
-    endpoints = ["/forward", "/right", "/left"]
-    endpoint = endpoints[action] if action < len(endpoints) else "/default"
+    url = 'https://8f00-72-139-206-147.ngrok-free.app/'
+    endpoints = ['/forward', '/right', '/left']
+    endpoint = (endpoints[action] if action
+                < len(endpoints) else '/default')
     full_url = url + endpoint
-    params = {"speed": "0.95"}
+    params = {'speed': '0.95'}
     requests.post(full_url, params=params)
     time.sleep(scaled)
 
@@ -75,8 +88,8 @@ target = 0
 tune_iterations = 100
 tune_pid(pid_controller, target, tune_iterations)
 
-for i, pred in enumerate(predictions):
-    move_forward, rotate_left, rotate_right, angle, distance = pred
+for (i, pred) in enumerate(predictions):
+    (move_forward, rotate_left, rotate_right, angle, distance) = pred
     action = np.argmax([move_forward, rotate_left, rotate_right])
     scaled_delay = distance
     error = distance - scaled_delay
@@ -98,4 +111,4 @@ for i, pred in enumerate(predictions):
     time.sleep(scaled_delay)
 
 time.sleep(3)
-requests.post("https://4a13-208-98-222-1.ngrok-free.app/stop")
+requests.post('https://4a13-208-98-222-1.ngrok-free.app/stop')
