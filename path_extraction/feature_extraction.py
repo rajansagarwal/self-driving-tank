@@ -5,14 +5,12 @@ import os
 IMG_WIDTH = 64
 IMG_HEIGHT = 32
 
-
-def edge_detection(frame, width, height):
+def edge_detection(frame, width, height): 
     frame = cv.resize(frame, (width, height))
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    blurred = cv.medianBlur(gray, 11)
+    blurred = cv.medianBlur(gray,11)
     edges = cv.Canny(blurred, 300, 200)
     return edges
-
 
 def hue_detection(frame, width, height):
     frame = cv.resize(frame, (width, height))
@@ -21,7 +19,7 @@ def hue_detection(frame, width, height):
         for pos2 in range(len(hsl_img[0])):
             hsl_img[pos1][pos2][1] = 100
             hsl_img[pos1][pos2][2] = 50
-    blurred = cv.medianBlur(hsl_img, 11)
+    blurred = cv.medianBlur(hsl_img,11)
     edges = cv.Canny(blurred, 40, 100)
     return edges
 
