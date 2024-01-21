@@ -110,7 +110,6 @@ def optimized_custom_loss(x, y):
             big += val
     return (big - loss) / big
 
-
 y = [1, -32, 119]
 print(custom_loss(x, y))
 print(optimized_custom_loss(x, y))
